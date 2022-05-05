@@ -1,4 +1,28 @@
+def sendSlacknotificatons(String buildStatus = 'STARTED') {
+ 
+  buildStatus =  buildStatus ?: 'SUCCESSFUL'
 
+  // Default values
+  def colorName = 'RED'
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+  def summary = "${subject} (${env.BUILD_URL})"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    color = 'YELLOW'
+    colorCode = '#FFFF00'
+  } else if (buildStatus == 'SUCCESSFUL') {
+    color = 'GREEN'
+    colorCode = '#00FF00'
+  } else {
+    color = 'RED'
+    colorCode = '#FF0000'
+  }
+
+  // Send notifications
+  slackSend (color: colorCode, message: summary)
+}
 node{
     echo "Job Name is: ${env.JOB_NAME}"
     echo "Node name is: ${env.NODE_NAME}"
@@ -6,6 +30,13 @@ node{
 properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'JobLocalConfiguration', changeReasonComment: ''], pipelineTriggers([pollSCM('* * * * *')])])  
     
 def mavenHome = tool name:'maven3.8.5'
+
+try{
+
+}//Try Closing
+
+}//Node Closing
+
 //Get the code from Github Repo
 stage('CheckoutCode'){
 git branch: 'development', credentialsId: 'a69ee4e6-e33b-4ccb-910a-f955e7036384', url: 'https://github.com/PHANI-DEVOPSCLASS/maven-web-application.git'
@@ -30,4 +61,12 @@ sshagent(['8bd87b61-ed83-41a3-afc7-6a02cd80e2de']) {
 }    
 }
 */
-} 
+}//Try CLosing
+  catch(e){
+  currentBuild.result = "FAILED"
+  }
+  finally{
+
+sendSlackNotifications(currentBuild.result)
+}
+}//Node Closing 
