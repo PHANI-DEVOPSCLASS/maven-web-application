@@ -61,6 +61,7 @@ sshagent(['8bd87b61-ed83-41a3-afc7-6a02cd80e2de']) {
 }    
 }
 */
+}
 }//Try CLosing
   catch(e){
   currentBuild.result = "FAILED"
